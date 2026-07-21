@@ -11,10 +11,7 @@ module.exports = async function (uriConnect) {
 	const bankModel = require("../models/mongodb/bank.js");
 	const staiHistoryModel = require("../models/mongodb/staiHistory.js");
 
-	await mongoose.connect(uriConnect, {
-		useNewUrlParser: true,
-		useUnifiedTopology: true
-	});
+	await mongoose.connect(uriConnect);
 
 	return {
 		threadModel,
