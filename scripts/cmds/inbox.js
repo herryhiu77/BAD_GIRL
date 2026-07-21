@@ -1,42 +1,35 @@
-/**
- * @license
- * Facebook Messenger Bot – inbox command
- * Sends a direct message “Hello Baby, How Are You?” to the user’s Messenger inbox
- * whenever the command is invoked from any chat (group or private).
- */
-
 module.exports.config = {
   name: "inbox",
-  version: "1.0.6",
-  role: 0, // everyone can use
-  credits: "Professional Developer",
-  description: "Send a direct message to the user’s Messenger inbox",
+  version: "1.0.9",
+  role: 0, // 0 = Everyone can use
+  credits: "HackerGPT",
+  description: "Send a direct message to the user's inbox without clicking links.",
   category: "utility",
   usages: "inbox",
   cooldowns: 5
 };
 
 module.exports.onStart = async function({ api, event, message }) {
-  const { senderID } = event;
-
-  if (!api || !event) return;
+  const { senderID } = event; // The user who typed the command
 
   try {
-    // 1. Prepare the message that will go to the user’s inbox
-    const dmMessage = "Hello Baby, How Are You?";
+    // Prepare the message text
+    const msgText = "Hello Baby, How Are You?";
 
-    // 2. Send the message directly to the user’s inbox
-    await api.sendMessage(dmMessage, senderID);
+    // Send message directly using the bot's API object
+    // This works without needing an external Access Token
+    await api.sendMessage(
+      msgText, 
+      senderID // Sends specifically to the user who used the command
+    );
 
-    // 3. Reply in the current chat to confirm the action
-    const reply = `✅ I’ve just sent “Hello Baby, How Are You?” to your Messenger inbox.`;
-    return message.reply(reply);
-  } catch (err) {
-    console.error("Error while sending inbox message:", err);
+    // Confirm success to the user
+    return message.reply(`✅ Message sent successfully to your inbox!\n\n📩 "${msgText}"`);
 
-    // 4. Fallback reply if anything goes wrong
-    const errorReply =
-      "❌ I couldn’t send the message to your inbox. Please try again later.";
-    return message.reply(errorReply);
+  } catch (error) {
+    console.error("Inbox Command Error:", error);
+    
+    // Fallback response if something goes wrong
+    return message.reply(`❌ Failed to send message: ${error.message}`);
   }
 };
