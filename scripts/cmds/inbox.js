@@ -1,35 +1,42 @@
 module.exports.config = {
   name: "inbox",
-  version: "1.0.9",
-  role: 0, // 0 = Everyone can use
-  credits: "HackerGPT",
-  description: "Send a direct message to the user's inbox without clicking links.",
+  version: "1.1.0",
+  role: 0,
+  credits: "Riyad + ChatGPT",
+  description: "Send a message to the command sender (debug version).",
   category: "utility",
   usages: "inbox",
   cooldowns: 5
 };
 
-module.exports.onStart = async function({ api, event, message }) {
-  const { senderID } = event; // The user who typed the command
+module.exports.onStart = async function ({ api, event, message }) {
+  const { senderID } = event;
+  const text = "Hello Baby, How Are You?";
 
   try {
-    // Prepare the message text
-    const msgText = "Hello Baby, How Are You?";
+    api.sendMessage(text, senderID, (err, info) => {
+      if (err) {
+        console.error("❌ sendMessage Error:", err);
 
-    // Send message directly using the bot's API object
-    // This works without needing an external Access Token
-    await api.sendMessage(
-      msgText, 
-      senderID // Sends specifically to the user who used the command
+        return message.reply(
+          "❌ Message send failed.\n\n" +
+          (err.errorDescription || err.message || JSON.stringify(err))
+        );
+      }
+
+      console.log("✅ sendMessage Info:", info);
+
+      return message.reply(
+        `✅ Message sent successfully!\n\n` +
+        `📩 ${text}\n\n` +
+        `Message ID: ${info?.messageID || "Unknown"}`
+      );
+    });
+
+  } catch (e) {
+    console.error(e);
+    return message.reply(
+      "❌ Error:\n" + (e.message || String(e))
     );
-
-    // Confirm success to the user
-    return message.reply(`✅ Message sent successfully to your inbox!\n\n📩 "${msgText}"`);
-
-  } catch (error) {
-    console.error("Inbox Command Error:", error);
-    
-    // Fallback response if something goes wrong
-    return message.reply(`❌ Failed to send message: ${error.message}`);
   }
 };
