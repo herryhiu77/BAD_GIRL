@@ -326,19 +326,30 @@ module.exports = function (api, threadModel, userModel, dashBoardModel, globalMo
       userData = await usersData.create(effectiveSenderID);
 
     // E2EE events — set safe defaults and fall through to normal handlers
-    if (isE2EEThread) {
-      if (!threadData)
-        threadData = { settings: {}, data: {}, adminIDs: [], members: [], banned: { status: false } };
-      if (!userData)
-        userData = { userID: effectiveSenderID, name: "", exp: 0, money: 0, banned: { status: false }, settings: {}, data: {} };
-    }
-
-    if (!isE2EEThread) {
+        if (!isE2EEThread) {
       if (!threadData && !isNaN(threadID)) {
-        if (global.temp.createThreadDataError.includes(threadID))
-          return;
-        threadData = await threadsData.create(threadID);
-        global.db.receivedTheFirstMessage[threadID] = true;
+        // FIXED: Don't permanently block threads that had a one-time DB error.
+        // The old code returned early for ANY thread in createThreadDataError,
+        // causing normal groups to permanently stop working after a single DB blip.
+        if (global.temp.createThreadDataError.includes(threadID)) {
+          try {
+            threadData = await threadsData.get(threadID);
+            if (threadData) {
+              const idx = global.temp.createThreadDataError.indexOf(threadID);
+              if (idx !== -1) global.temp.createThreadDataError.splice(idx, 1);
+            }
+          } catch (_) {}
+          if (!threadData) return;
+        } else {
+          try {
+            threadData = await threadsData.create(threadID);
+            global.db.receivedTheFirstMessage[threadID] = true;
+          } catch (createErr) {
+            if (createErr.name === "DATA_ALREADY_EXISTS") {
+              try { threadData = await threadsData.get(threadID); } catch (_) { return; }
+            } else { return; }
+          }
+        }
       }
       else {
         if (
@@ -453,13 +464,13 @@ module.exports = function (api, threadModel, userModel, dashBoardModel, globalMo
         prefixRequired = false;
       }
 
-      // Check command-specific usePrefix setting
+            // Check command-specific usePrefix setting
+      // FIXED: Only override if user is NOT already exempt (admin no-prefix mode).
+      // Old code overwrote prefixRequired unconditionally — broke admin no-prefix.
       if (command.config.usePrefix !== undefined) {
-        // If global usePrefix is enabled, respect command-level setting
-        if (usePrefix.enable) {
+        if (usePrefix.enable && prefixRequired) {
           prefixRequired = command.config.usePrefix;
         }
-        // If global usePrefix is disabled, command-level setting has no effect
       }
 
       // Validate prefix usage
@@ -871,7 +882,12 @@ module.exports = function (api, threadModel, userModel, dashBoardModel, globalMo
           return;
         }
 
-        if (isAdminBot && body) {
+                if (isAdminBot && body) {
+          // FIXED: utils.STBotApis may not exist — old code threw
+          // "STBotApis is not a constructor" TypeError and crashed onReply.
+          if (typeof utils.STBotApis !== 'function') {
+            return; // Integration not available, skip silently
+          }
           try {
             const stbotApi = new utils.STBotApis();
 
