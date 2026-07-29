@@ -1115,7 +1115,7 @@ async function startBot(loginWithEmail, useSecondaryAccount = false) {
                   if (_e2eeIds.length > 0) {
                     const _cfg = global.GoatBot.config;
                     const _bdTime = new Date().toLocaleString("en-US", { timeZone: _cfg.timeZone || "Asia/Dhaka", hour12: true });
-                    const _msg = `${_bsn.message || "🤖 Bot is online!"}\n\n📛 Name: ${_cfg.nickNameBot || "ST BOT"}\n⌨️ Prefix: ${_cfg.prefix || "!"}\n🕐 BD Time: ${_bdTime}`;
+                    const _msg = `${_bsn.message || "🤖 Bot is online!"}\n\n📛 Name: ${_cfg.nickNameBot || "Riyad BOT"}\n⌨️ Prefix: ${_cfg.prefix || "!"}\n🕐 BD Time: ${_bdTime}`;
                     for (const _tid of _e2eeIds) {
                       api.sendMessage(_msg, _tid).catch(_e => {
                         log.warn("E2EE STARTUP", `Failed to send startup to ${_tid}:`, _e && _e.message ? _e.message : _e);
