@@ -136,7 +136,7 @@ function getRoleConfig(utils, command, isGroup, threadData, commandName) {
   }
 
   if (isGroup)
-    roleConfig.onStart = threadData.data.setRole?.[commandName] ?? roleConfig.onStart;
+    roleConfig.onStart = threadData?.data?.setRole?.[commandName] ?? roleConfig.onStart;
 
   for (const key of ["onChat", "onStart", "onReaction", "onReply"]) {
     if (roleConfig[key] == undefined)
@@ -178,6 +178,7 @@ function isBannedOrOnlyAdmin(userData, threadData, senderID, threadID, isGroup, 
 
   // ==========    Check Thread    ========== //
   if (isGroup == true) {
+    if (!threadData || !threadData.data) return false; // E2EE threads may have no threadData yet
     if (
       threadData.data.onlyAdminBox === true
       && !threadData.adminIDs.includes(senderID)
@@ -191,7 +192,7 @@ function isBannedOrOnlyAdmin(userData, threadData, senderID, threadID, isGroup, 
 
     // check if thread banned
     const infoBannedThread = threadData.banned;
-    if (infoBannedThread.status == true) {
+    if (infoBannedThread && infoBannedThread.status == true) {
       const { reason, date } = infoBannedThread;
       if (hideNotiMessage.threadBanned == false)
         message.reply(getText("threadBanned", reason, date, threadID, lang));
@@ -478,7 +479,7 @@ module.exports = function (api, threadModel, userModel, dashBoardModel, globalMo
         return; // Prefix required but not used
       }
       // ———————— CHECK ALIASES SET BY GROUP ———————— //
-      const aliasesData = threadData.data.aliases || {};
+      const aliasesData = threadData?.data?.aliases || {};
       for (const cmdName in aliasesData) {
         if (aliasesData[cmdName].includes(commandName)) {
           command = GoatBot.commands.get(cmdName);
@@ -1242,8 +1243,6 @@ module.exports = function (api, threadModel, userModel, dashBoardModel, globalMo
       onEvent,
       handlerEvent,
       presence,
-      read_receipt,
-      typ
     };
   };
 };
