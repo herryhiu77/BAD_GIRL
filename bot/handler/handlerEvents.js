@@ -1234,15 +1234,17 @@ module.exports = function (api, threadModel, userModel, dashBoardModel, globalMo
     }
 
     return {
-      onAnyEvent,
-      onFirstChat,
-      onChat,
-      onStart,
-      onReaction,
-      onReply,
-      onEvent,
-      handlerEvent,
-      presence,
-    };
+  onAnyEvent,
+  onFirstChat,
+  onChat,
+  onStart,
+  onReaction,
+  onReply,
+  onEvent,
+  handlerEvent,
+  presence,
+  typ,
+  read_receipt,
+};
   };
 };
